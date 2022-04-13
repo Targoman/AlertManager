@@ -21,30 +21,33 @@ $MySQLDB   = "SMT";
 
 $DB = new MySQLDBPDO($MySQLHost, $MySQLUser, $MySQLPass, $MySQLDB);
 $Alerts = $DB->fetchAll("
-    SELECT
-            tbl_COMMON_Alert.alrID,
---                tbl_AAA_User.usrEmail,
-    Tarjomyar.tbl_Tarjomyar_UserAccounts.accEmail AS usrEmail,
-            tbl_AAA_User.usrMobile,
-            tbl_AAA_User.usrPreferedLanguage,
-            tbl_COMMON_Alert.alrType,
-            tbl_COMMON_Alert.alrReplacements,
-            tbl_COMMON_AlertTemplates.altMedia,
-            tbl_COMMON_AlertTemplates.altTitleTemplate,
-            tbl_COMMON_AlertTemplates.altBodyTemplate
-    FROM  tbl_COMMON_Alert
-        JOIN tbl_AAA_User
+        SELECT tbl_COMMON_Alert.alrID,
+--               tbl_AAA_User.usrEmail,
+               Tarjomyar.tbl_Tarjomyar_UserAccounts.accEmail AS usrEmail,
+               tbl_AAA_User.usrMobile,
+               tbl_AAA_User.usrPreferedLanguage,
+               tbl_COMMON_Alert.alrType,
+               tbl_COMMON_Alert.alrReplacements,
+               tbl_COMMON_AlertTemplates.altMedia,
+               tbl_COMMON_AlertTemplates.altTitleTemplate,
+               tbl_COMMON_AlertTemplates.altBodyTemplate
+          FROM tbl_COMMON_Alert
+          JOIN tbl_AAA_User
             ON tbl_AAA_User.usrID = tbl_COMMON_Alert.alr_usrID
-        INNER JOIN tbl_COMMON_AlertTemplates
+    INNER JOIN tbl_COMMON_AlertTemplates
             ON tbl_COMMON_AlertTemplates.altCode = tbl_COMMON_Alert.alr_altCode
-        JOIN Tarjomyar.tbl_Tarjomyar_UserAccounts
-    ON Tarjomyar.tbl_Tarjomyar_UserAccounts.acc_usrID = tbl_AAA_User.usrID
-    WHERE (tbl_COMMON_Alert.alrStatus = 'N'
+          JOIN Tarjomyar.tbl_Tarjomyar_UserAccounts
+            ON Tarjomyar.tbl_Tarjomyar_UserAccounts.acc_usrID = tbl_AAA_User.usrID
+
+         WHERE (tbl_COMMON_Alert.alrStatus = 'N'
             OR (tbl_COMMON_Alert.alrStatus = 'E'
-                AND tbl_COMMON_Alert.alrSentDate < DATE_SUB(now(), INTERVAL 10 Minute)))
-            AND tbl_COMMON_AlertTemplates.altLanguage = tbl_AAA_User.usrPreferedLanguage
-            AND Tarjomyar.tbl_Tarjomyar_UserAccounts.accStatus = 'A'
-    ORDER BY tbl_COMMON_Alert.alrID");
+           AND tbl_COMMON_Alert.alrSentDate < DATE_SUB(now(), INTERVAL 10 Minute)
+               )
+               )
+           AND tbl_COMMON_AlertTemplates.altLanguage = tbl_AAA_User.usrPreferedLanguage
+           AND Tarjomyar.tbl_Tarjomyar_UserAccounts.accStatus = 'A'
+      ORDER BY tbl_COMMON_Alert.alrID");
+
 $LastSubject = "";
 foreach ($Alerts as &$Alert){
     $Replacements = json_decode(trim($Alert['alrReplacements']), true);

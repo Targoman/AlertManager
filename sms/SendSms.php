@@ -9,26 +9,41 @@ function SendSmsForItem($row, $smsGateway) {
     // $alr_usrID              = $row['alr_usrID'];
     // $alrEmail               = $row['alrEmail'];
     // $alrMobile              = $row['alrMobile'];
-    $alrReplacedContactInfo = $row['alrReplacedContactInfo'];
+    $alrReplacedContactInfo = trim($row['alrReplacedContactInfo']);
     // $alr_altCode            = $row['alr_altCode'];
-    $alrReplacements        = $row['alrReplacements'];
+    $alrReplacements        = trim($row['alrReplacements']);
     // $alrCreateDate          = $row['alrCreateDate'];
     // $alrLockedAt            = $row['alrLockedAt'];
     // $alrSentDate            = $row['alrSentDate'];
     // $alrStatus              = $row['alrStatus'];
 
+    // $altlID                  = $row['altlID'];
+    // $altCode                 = $row['altCode'];
+    // $altMedia                = $row['altMedia'];
+    // $altLanguage             = $row['altLanguage'];
+    // $altTitleTemplate        = trim($row['altTitleTemplate']);
+    $altBodyTemplate         = trim($row['altBodyTemplate']);
+    $altParamsPrefix         = trim($row['altParamsPrefix']);
+    $altParamsSuffix         = trim($row['altParamsSuffix']);
+
     $alrReplacements = json_decode($alrReplacements, true);
     $newReplacements = [];
-    foreach ($alrReplacements as $k => $v) {
-        $newReplacements[":$k"] = $v;
+    if (!empty($altParamsPrefix) || !empty($altParamsSuffix)) {
+        foreach ($alrReplacements as $k => $v) {
+            $newReplacements[$altParamsPrefix . $k . $altParamsSuffix] = $v;
+        }
     }
-
-    if (isset($newReplacements[":usrName"]))
-        $messageBody = strtr("Dear :usrName :usrFamily, this is approval code for you. Code: :ApprovalCode", $newReplacements);
     else
-        $messageBody = strtr("Dear user, this is approval code for you. Code: :ApprovalCode", $newReplacements);
+        $newReplacements = $alrReplacements;
 
-    $SendResult = $smsGateway->send(null, $alrReplacedContactInfo, $messageBody);
+    $altBodyTemplate = strtr($altBodyTemplate, $newReplacements);
+
+    // if (isset($newReplacements[":usrName"]))
+    //     $messageBody = strtr("Dear :usrName :usrFamily, this is approval code for you. Code: :ApprovalCode", $newReplacements);
+    // else
+    //     $messageBody = strtr("Dear user, this is approval code for you. Code: :ApprovalCode", $newReplacements);
+
+    $SendResult = $smsGateway->send(null, $alrReplacedContactInfo, $altBodyTemplate);
 
     $rowsCount = AlertManager::db()->execute(<<<SQL
         UPDATE tblAlerts
@@ -38,12 +53,12 @@ function SendSmsForItem($row, $smsGateway) {
          WHERE alrID = ?
 SQL
     , [
-        1 => $SendResult["OK"] ? 'S' : 'N',
+        1 => $SendResult["OK"] ? 'S' : 'E',
         2 => $alrID,
     ]);
 
     print_r([
-        'messageBody' => $messageBody,
+        'messageBody' => $altBodyTemplate,
         'SendResult' => $SendResult,
         'rowsCount' => $rowsCount,
     ]);
@@ -58,9 +73,15 @@ function SendSms() {
     $data = $db->selectAll(<<<SQL
         SELECT *
           FROM tblAlerts
+    INNER JOIN tblAlertTemplates
+            ON tblAlertTemplates.altCode = tblAlerts.alr_altCode
          WHERE alr_altCode = 'approveMobile'
-           AND alrStatus = 'N'
            AND alrLockedAt IS NULL
+           AND (alrStatus = 'N'
+            OR (alrStatus = 'E'
+           AND alrSentDate < DATE_SUB(NOW(), INTERVAL 10 Minute)
+               )
+               )
       ORDER BY alrCreateDate ASC
          LIMIT 2
 SQL
