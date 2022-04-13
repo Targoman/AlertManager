@@ -61,7 +61,10 @@ class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
             "data" => $data,
         ]);
 
-        // return $body;
+        return [
+            "OK" => $data->RetStatus == 1,
+            "SMS-ID" => $data->Value,
+        ];
     }
 
 }
