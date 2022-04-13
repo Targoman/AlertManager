@@ -65,7 +65,16 @@ SQL
 }
 
 function SendSms() {
+    // $LockFile = "/var/lock/sendSms_php";
+    $a = shell_exec('ps -aux | grep "/Targoman/AlertManager/SendSms.php" | grep "php "');
+    echo $a;
 
+    if (substr_count($a, "\n") > 2) {
+        echo "SendSms is running\n";
+        return;
+    }
+
+    //-------------------------
     $smsGateway = AlertManager::instantiateClassByConfigName("smsgateway");
 
     $db = AlertManager::db();
