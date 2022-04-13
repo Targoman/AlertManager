@@ -36,20 +36,26 @@ class MySql {
         return self::$PDO;
     }
 
-    public function createCommand($_qry) {
-        return new Command($this, $_qry);
+    public function createCommand($_qry, $_params=[]) {
+        return new Command($this, $_qry, $_params);
     }
 
-    public function selectAll($_qry) {
-        $command = $this->createCommand($_qry);
+    public function selectAll($_qry, $_params=[]) {
+        $command = $this->createCommand($_qry, $_params);
 
         return $command->queryAll();
     }
 
-    public function selectOne($_qry) {
-        $command = $this->createCommand($_qry);
+    public function selectOne($_qry, $_params=[]) {
+        $command = $this->createCommand($_qry, $_params);
 
         return $command->queryOne();
+    }
+
+    public function execute($_qry, $_params=[]) {
+        $command = $this->createCommand($_qry, $_params);
+
+        return $command->execute();
     }
 
 }
