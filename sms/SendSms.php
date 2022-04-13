@@ -7,4 +7,20 @@ $config = require(__DIR__ . "/../config/Alerting.conf.php");
 
 $smsGateway = AlertManager::instantiateClass($config["smsgateway"]);
 
-$smsGateway->send("a", "b", "c");
+$db = AlertManager::instantiateClass($config["db"]);
+
+$data = $db->selectAll("SELECT * FROM tblAlerts");
+
+print_r($data);
+
+
+
+
+
+
+
+
+
+
+
+// $smsGateway->send("a", "b", "c");

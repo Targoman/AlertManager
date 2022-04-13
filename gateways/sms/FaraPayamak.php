@@ -16,9 +16,9 @@ class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
     public $linenumber;
 
     public function send(
-        $from, //null : use line number defined in config
-        $to,
-        $message
+        $_from, //null : use line number defined in config
+        $_to,
+        $_message
     ) {
         //todo: validate clsss and input parameters
 
@@ -35,9 +35,9 @@ class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
             "username"    => $this->username,
             "password"    => $this->password,
-            "to"          => $to,
-            "from"        => $this->linenumber,
-            "text"        => $message
+            "to"          => $_to,
+            "from"        => $this->linenumber ?? $_from,
+            "text"        => $_message
             // "bodyId"      => "$ SMSBodyID",
         ]));
 

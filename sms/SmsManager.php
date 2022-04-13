@@ -2,8 +2,6 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
-/*
-
 $LockFile="/var/lock/sendAlerts";
 #    if (mkdir($LockFile) === false){
 $a=shell_exec('ps -aux | grep "/Targoman/AlertManager/SendSMS.php" | grep "php "');
@@ -88,6 +86,3 @@ usleep(100000);
 }
 
 #   rmdir($LockFile);
-
-
-*/

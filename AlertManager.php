@@ -4,16 +4,19 @@
 require __DIR__ . "/Autoloader.php";
 
 class AlertManager extends Autoloader {
-    public static function instantiateClass($config) {
-        $className = array_shift($config);
+    public static function instantiateClass($_config) {
+        $className = array_shift($_config);
 
         $reflector = new \ReflectionClass($className);
-        $class = $reflector->newInstanceWithoutConstructor();
+        $class = $reflector->newInstance(); //WithoutConstructor();
         unset($reflector);
 
-        foreach($config as $prop => $value) {
+        foreach($_config as $prop => $value) {
             $class->$prop = $value;
         }
+
+        if (method_exists($class, "init"))
+            $class->init();
 
         return $class;
     }

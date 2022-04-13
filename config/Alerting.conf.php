@@ -8,4 +8,12 @@ return [
         "password" => "password",
         "linenumber" => "800080008000",
     ],
+    "db" => [
+        "class" => "Targoman\AlertManager\common\db\MySql",
+        "host" => "127.0.0.1",
+        "port" => "3306",
+        "username" => "root",
+        "password" => "targoman123",
+        "schema" => "dev_Common",
+    ],
 ];
