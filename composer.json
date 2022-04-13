@@ -1,0 +1,12 @@
+{
+    "name": "targoman/alert-manager",
+    "description": "Alert manager for TAPI",
+    "type": "project",
+    "authors": [
+        {
+            "name": "kambizzandi",
+            "email": "kambizzandi@gmail.com"
+        }
+    ],
+    "require": {}
+}
