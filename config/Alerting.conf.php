@@ -16,4 +16,7 @@ return [
         "password" => "targoman123",
         "schema" => "dev_Common",
     ],
+    "sendsms" => [
+        "fetchlimit" => "10",
+    ],
 ];

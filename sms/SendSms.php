@@ -66,7 +66,7 @@ SQL
 
 function SendSms() {
     // $LockFile = "/var/lock/sendSms_php";
-    $a = shell_exec('ps -aux | grep "/Targoman/AlertManager/SendSms.php" | grep "php "');
+    $a = shell_exec('ps -aux | grep "SendSms.php" | grep "php "');
     echo $a;
 
     if (substr_count($a, "\n") > 2) {
@@ -79,6 +79,8 @@ function SendSms() {
 
     $db = AlertManager::db();
 
+    $fetchLimit = AlertManager::config()["sendsms"]["fetchlimit"] ?? 10;
+
     $data = $db->selectAll(<<<SQL
         SELECT *
           FROM tblAlerts
@@ -88,11 +90,11 @@ function SendSms() {
            AND alrLockedAt IS NULL
            AND (alrStatus = 'N'
             OR (alrStatus = 'E'
-           AND alrSentDate < DATE_SUB(NOW(), INTERVAL 10 Minute)
+           AND alrLastTryAt < DATE_SUB(NOW(), INTERVAL 10 Minute)
                )
                )
       ORDER BY alrCreateDate ASC
-         LIMIT 2
+         LIMIT {$fetchLimit}
 SQL
     );
 

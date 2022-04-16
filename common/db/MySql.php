@@ -24,7 +24,7 @@ class MySql {
     }
 
     private function getDSN() {
-        return "mysql:host=$this->host;port=$this->port;dbname=$this->schema";
+        return "mysql:host={$this->host};port={$this->port};dbname={$this->schema}";
     }
 
     public function getPDO() {
