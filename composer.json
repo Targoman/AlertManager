@@ -8,5 +8,7 @@
             "email": "kambizzandi@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "symfony/mailer": "^5.4"
+    }
 }

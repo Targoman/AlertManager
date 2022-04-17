@@ -3,8 +3,8 @@
 
 namespace Targoman\AlertManager\gateways\sms;
 
-use Targoman\AlertManager\common\BaseSmsGateway;
-use Targoman\AlertManager\common\ISmsGateway;
+use Targoman\AlertManager\classes\sms\BaseSmsGateway;
+use Targoman\AlertManager\classes\sms\ISmsGateway;
 
 // https://github.com/nosratiz/Payamak-Panel
 class FaraPayamak extends BaseSmsGateway implements ISmsGateway {

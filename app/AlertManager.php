@@ -1,6 +1,7 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
+require __DIR__ . "/../vendor/autoload.php";
 require __DIR__ . "/Autoloader.php";
 
 class AlertManager extends Autoloader {
@@ -8,13 +9,17 @@ class AlertManager extends Autoloader {
     private static $config = null;
     public static function config() {
         if (self::$config == null)
-            self::$config = require(__DIR__ . "/config/Alerting.conf.php");
-
+            self::$config = require(__DIR__ . "/../config/Alerting.conf.php");
         return self::$config;
     }
 
     public static function instantiateClass($_config) {
         $className = array_shift($_config);
+
+        // foreach ($_config as $k => &$v) {
+        //     if (isset($v["class"]))
+        //         $v["class"] = static:: instantiateClass($v);
+        // }
 
         $reflector = new \ReflectionClass($className);
         $class = $reflector->newInstance(); //WithoutConstructor();
@@ -52,8 +57,21 @@ class AlertManager extends Autoloader {
     public static function db() {
         if (self::$db == null)
             self::$db = self::instantiateClassByConfigName("db");
-
         return self::$db;
+    }
+
+    private static $smsgateway = null;
+    public static function smsgateway() {
+        if (self::$smsgateway == null)
+            self::$smsgateway = self::instantiateClassByConfigName("smsgateway");
+        return self::$smsgateway;
+    }
+
+    private static $mailer = null;
+    public static function mailer() {
+        if (self::$mailer == null)
+            self::$mailer = self::instantiateClassByConfigName("mailer");
+        return self::$mailer;
     }
 
 }

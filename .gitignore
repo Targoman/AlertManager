@@ -32,4 +32,5 @@
 *.app
 
 /vendor/
-.vscode/launch.json
+
+.vscode
