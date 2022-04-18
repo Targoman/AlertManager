@@ -1,124 +1,23 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
-include_once(__DIR__ . "/AlertManager.php");
+defined('FW_DEBUG') or define('FW_DEBUG', true);
+defined('FW_ENV_DEV') or define('FW_ENV_DEV', true);
 
-class SendSms {
+include_once(__DIR__ . "/Framework.php");
 
-    public function run() {
-        $a = shell_exec('ps -aux | grep "SendSms.php" | grep "php "');
-        if (substr_count($a, "\n") > 2) {
-            echo "SendSms is running\n";
-            return;
-        }
+$config = require(__DIR__ . "/../config/Alerting.conf.php");
 
-        //-------------------------
-        $smsGateway = AlertManager::smsgateway();
+if (FW_ENV_DEV) {
+    $config = array_replace_recursive(
+        $config,
+        require(__DIR__ . "/../config/params-local.php")
+    );
+} else {
+    $config = array_replace_recursive(
+        $config,
+        require(__DIR__ . "/../config/params.php")
+    );
+}
 
-        $db = AlertManager::db();
-
-        $fetchLimit = AlertManager::config()["sendsms"]["fetchlimit"] ?? 10;
-
-        $data = $db->selectAll(<<<SQL
-            SELECT *
-              FROM tblAlerts
-        INNER JOIN tblAlertTemplates
-                ON tblAlertTemplates.altCode = tblAlerts.alr_altCode
-             WHERE altMedia = 'M'
-               AND alrReplacedContactInfo != '__UNKNOWN__'
-               AND alrLockedAt IS NULL
-               AND (alrStatus = 'N'
-                OR (alrStatus = 'E'
-               AND alrLastTryAt < DATE_SUB(NOW(), INTERVAL 10 Minute)
-                   )
-                   )
-          ORDER BY alrCreateDate ASC
-             LIMIT {$fetchLimit}
-SQL
-        );
-
-        print_r($data);
-
-        if (empty($data))
-            return;
-
-        $ids = array_map(function ($ar) { return $ar["alrID"]; }, $data);
-
-        print_r($ids);
-
-        if (empty($data))
-            throw new \Exception("Error in gathering alerts ids");
-
-        //lock items
-        $rowsCount = $db->execute(strtr(<<<SQL
-            UPDATE tblAlerts
-               SET alrLockedAt = NOW()
-             WHERE alrID IN (:ids)
-SQL
-        , [
-            ':ids' => implode(',', $ids),
-        ]));
-
-        print_r([implode(',', $ids), $rowsCount]);
-
-        foreach ($data as $row) {
-            $this->SendSmsForItem($row);
-        }
-    }
-
-    private function SendSmsForItem($row) {
-        $alrID                  = $row['alrID'];
-        // $alrType                = $row['alrType'];
-        // $alr_usrID              = $row['alr_usrID'];
-        $alrReplacedContactInfo = trim($row['alrReplacedContactInfo']);
-        // $alr_altCode            = $row['alr_altCode'];
-        $alrReplacements        = trim($row['alrReplacements']);
-        // $alrCreateDate          = $row['alrCreateDate'];
-        // $alrLockedAt            = $row['alrLockedAt'];
-        // $alrSentDate            = $row['alrSentDate'];
-        // $alrStatus              = $row['alrStatus'];
-
-        // $altlID                  = $row['altlID'];
-        // $altCode                 = $row['altCode'];
-        // $altMedia                = $row['altMedia'];
-        // $altLanguage             = $row['altLanguage'];
-        // $altTitleTemplate        = trim($row['altTitleTemplate']);
-        $altBodyTemplate         = trim($row['altBodyTemplate']);
-        $altParamsPrefix         = trim($row['altParamsPrefix']);
-        $altParamsSuffix         = trim($row['altParamsSuffix']);
-
-        $alrReplacements = json_decode($alrReplacements, true);
-        $newReplacements = [];
-        if (!empty($altParamsPrefix) || !empty($altParamsSuffix)) {
-            foreach ($alrReplacements as $k => $v) {
-                $newReplacements[$altParamsPrefix . $k . $altParamsSuffix] = $v;
-            }
-        }
-        else
-            $newReplacements = $alrReplacements;
-
-        $altBodyTemplate = strtr($altBodyTemplate, $newReplacements);
-
-        $SendResult = AlertManager::smsgateway()->send(null, $alrReplacedContactInfo, $altBodyTemplate);
-
-        $rowsCount = AlertManager::db()->execute(<<<SQL
-            UPDATE tblAlerts
-               SET alrLockedAt = NULL
-                 , alrLastTryAt = NOW()
-                 , alrStatus = ?
-             WHERE alrID = ?
-SQL
-        , [
-            1 => $SendResult["OK"] ? 'S' : 'E',
-            2 => $alrID,
-        ]);
-
-        print_r([
-            'messageBody' => $altBodyTemplate,
-            'SendResult' => $SendResult,
-            'rowsCount' => $rowsCount,
-        ]);
-    }
-};
-
-(new SendSms())->run();
+exit((new \Targoman\AlertManager\classes\sms\AppSendSms($config))->run());
