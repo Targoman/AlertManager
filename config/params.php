@@ -2,6 +2,10 @@
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
 return [
+    "app" => [
+        "fetchlimit" => "100",
+        "emailFrom" => "",
+    ],
     "db" => [
         "host" => "",
         "port" => "",
@@ -25,12 +29,5 @@ return [
                 "verify_peer" => false,
             ],
         ],
-    ],
-    "sendsms" => [
-        "fetchlimit" => "100",
-    ],
-    "sendemail" => [
-        "fetchlimit" => "100",
-        "from" => "",
     ],
 ];

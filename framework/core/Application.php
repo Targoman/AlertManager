@@ -1,7 +1,7 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
-namespace Targoman\AlertManager\classes\core;
+namespace Targoman\AlertManager\framework\core;
 
 use Framework;
 

@@ -1,7 +1,7 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
-namespace Targoman\AlertManager\classes\db;
+namespace Targoman\AlertManager\framework\db;
 
 use PDO;
 

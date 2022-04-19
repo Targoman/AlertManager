@@ -1,26 +1,26 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
-namespace Targoman\AlertManager\classes\sms;
+namespace Targoman\AlertManager\classes;
 
-use Framework;
-use Targoman\AlertManager\classes\core\Application;
+use Targoman\AlertManager\framework\core\Application;
 
-class AppSendSms extends Application {
+class AppAlertManager extends Application {
 
     public function run() {
-        $a = shell_exec('ps -aux | grep "SendSms.php" | grep "php "');
+        $a = shell_exec('ps -aux | grep "AlertManager.php" | grep "php "');
         if (substr_count($a, "\n") > 2) {
-            echo "SendSms is running\n";
+            echo "AlertManager is running\n";
             return;
         }
 
         //-------------------------
         $smsGateway = $this->smsgateway();
+        $mailer = $this->mailer();
 
         $db = $this->db();
 
-        $fetchLimit = $this->config()["sendsms"]["fetchlimit"] ?? 10;
+        $fetchLimit = $this->config()["app"]["fetchlimit"] ?? 10;
 
         $data = $db->selectAll(<<<SQL
             SELECT *
@@ -122,4 +122,67 @@ SQL
             'rowsCount' => $rowsCount,
         ]);
     }
+
+    private function SendEmailForItem($row) {
+        $alrID                  = $row['alrID'];
+        // $alrType                = $row['alrType'];
+        // $alr_usrID              = $row['alr_usrID'];
+        $alrReplacedContactInfo = trim($row['alrReplacedContactInfo']);
+        // $alr_altCode            = $row['alr_altCode'];
+        $alrReplacements        = trim($row['alrReplacements']);
+        // $alrCreateDate          = $row['alrCreateDate'];
+        // $alrLockedAt            = $row['alrLockedAt'];
+        // $alrSentDate            = $row['alrSentDate'];
+        // $alrStatus              = $row['alrStatus'];
+
+        // $altlID                  = $row['altlID'];
+        // $altCode                 = $row['altCode'];
+        // $altMedia                = $row['altMedia'];
+        // $altLanguage             = $row['altLanguage'];
+        $altTitleTemplate        = trim($row['altTitleTemplate']);
+        $altBodyTemplate         = trim($row['altBodyTemplate']);
+        $altParamsPrefix         = trim($row['altParamsPrefix']);
+        $altParamsSuffix         = trim($row['altParamsSuffix']);
+
+        $alrReplacements = json_decode($alrReplacements, true);
+        $newReplacements = [];
+        if (!empty($altParamsPrefix) || !empty($altParamsSuffix)) {
+            foreach ($alrReplacements as $k => $v) {
+                $newReplacements[$altParamsPrefix . $k . $altParamsSuffix] = $v;
+            }
+        }
+        else
+            $newReplacements = $alrReplacements;
+
+        $altTitleTemplate = strtr($altTitleTemplate, $newReplacements);
+        $altBodyTemplate = strtr($altBodyTemplate, $newReplacements);
+
+        $SendResult = $this->mailer()
+            ->compose()
+            ->from($this->config()["app"]["emailFrom"])
+            ->to($alrReplacedContactInfo)
+            ->subject($altTitleTemplate)
+            ->textBody($altBodyTemplate)
+            ->send();
+
+        $rowsCount = $this->db()->execute(<<<SQL
+            UPDATE tblAlerts
+               SET alrLockedAt = NULL
+                 , alrLastTryAt = NOW()
+                 , alrStatus = ?
+             WHERE alrID = ?
+SQL
+        , [
+            1 => $SendResult["OK"] ? 'S' : 'E',
+            2 => $alrID,
+        ]);
+
+        print_r([
+            'messageTitle' => $altTitleTemplate,
+            'messageBody' => $altBodyTemplate,
+            'SendResult' => $SendResult,
+            'rowsCount' => $rowsCount,
+        ]);
+    }
+
 };

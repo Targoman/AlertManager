@@ -4,7 +4,7 @@
 defined('FW_DEBUG') or define('FW_DEBUG', true);
 defined('FW_ENV_DEV') or define('FW_ENV_DEV', true);
 
-include_once(__DIR__ . "/Framework.php");
+include_once(__DIR__ . "/../framework/Framework.php");
 
 $config = require(__DIR__ . "/../config/Alerting.conf.php");
 
@@ -20,4 +20,4 @@ if (FW_ENV_DEV) {
     );
 }
 
-exit((new \Targoman\AlertManager\classes\email\AppSendEmail($config))->run());
+exit((new \Targoman\AlertManager\classes\AppAlertManager($config))->run());

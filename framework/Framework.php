@@ -79,5 +79,5 @@ class Framework {
 
 Framework::$baseNamespace = "Targoman";
 spl_autoload_register(["Framework", "autoload"], true, false);
-Framework::$autoloadMap = require(__DIR__ . "/autoload.php");
+Framework::$autoloadMap = require(__DIR__ . "/../app/autoload.php");
 krsort(Framework::$autoloadMap);
