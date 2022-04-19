@@ -58,5 +58,7 @@ class Mailer extends BaseMailer implements IBaseMailer {
 
         $symfonyMailer = new _SymfonyMailer($this->transport);
         $symfonyMailer->send($symfonyMessage);
+
+        return true;
     }
 }

@@ -52,18 +52,19 @@ class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
         $parts = (count($parts) > 1 ? 'HTTP/' : '').array_pop($parts);
         list($headers, $body) = preg_split("@\r?\n\r?\n@u", $parts, 2);
 
-        $data = json_decode($body);
+        $data = json_decode($body, true);
 
-        print_r([
-            "response" => $response,
-            "headers" => $headers,
-            "body" => $body,
-            "data" => $data,
-        ]);
+        // print_r([
+        //     "response" => $response,
+        //     "headers" => $headers,
+        //     "body" => $body,
+        //     "data" => $data,
+        // ]);
 
         return [
-            "OK" => $data->RetStatus == 1,
-            "SMS-ID" => $data->Value,
+            "OK" => ($data["RetStatus"] == 1),
+            "refID" => $data["Value"],
+            "message" => ($data["RetStatus"] ?? "") . " - " . ($data["StrRetStatus"] ?? ""),
         ];
     }
 

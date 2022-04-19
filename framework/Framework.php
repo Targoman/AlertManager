@@ -70,17 +70,17 @@ class Framework {
         return $class;
     }
 
-    public static function instantiateClassByConfigName($_config, $_configName) {
-        if (empty($_config[$_configName]))
-            throw new \Exception("$_configName not configured");
+    // public static function instantiateClassByConfigName($_config, $_configName) {
+    //     if (empty($_config[$_configName]))
+    //         throw new \Exception("$_configName not configured");
 
-        $object = self::instantiateClass($_config[$_configName]);
+    //     $object = self::instantiateClass($_config[$_configName]);
 
-        if (is_null($object))
-            throw new \Exception("Could not create $_configName");
+    //     if (is_null($object))
+    //         throw new \Exception("Could not create $_configName");
 
-        return $object;
-    }
+    //     return $object;
+    // }
 
 }
 
