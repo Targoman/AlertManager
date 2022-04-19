@@ -2,5 +2,5 @@
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
 return [
-    "Targoman\\AlertManager" => __DIR__ . "/.."
+    "Targoman\\AlertManager" => __DIR__
 ];

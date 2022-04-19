@@ -3,7 +3,7 @@
 
 return [
     "db" => [
-        "class" => "Targoman\\AlertManager\\framework\\db\\MySql",
+        "class" => "Framework\\db\\MySql",
     ],
     "smsgateway" => [
         "class" => "Targoman\\AlertManager\\gateways\\sms\\FaraPayamak",

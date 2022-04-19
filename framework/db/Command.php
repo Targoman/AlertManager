@@ -1,7 +1,7 @@
 <?php
 // @author: Kambiz Zandi <kambizzandi@gmail.com>
 
-namespace Targoman\AlertManager\framework\db;
+namespace Framework\db;
 
 class Command {
     public $db;

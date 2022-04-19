@@ -4,17 +4,24 @@
 require __DIR__ . "/../vendor/autoload.php";
 
 class Framework {
-    public static $baseNamespace = "";
+    public static $baseNamespaces = [""];
     public static $autoloadMap = [];
 
     public static function autoload($_className) {
         if (strpos($_className, "\\") !== false) {
 			$name = str_replace("\\", "/", $_className) . ".php";
-			if (strpos($name, self::$baseNamespace . "/") !== 0)
-				return;
-
-			if (strpos($name, "/") === 0)
+            if (strpos($name, "/") === 0)
 				$name = substr($name, 1);
+
+            $ret = array_filter(array_map(
+                function($value) use ($name) {
+                    if (strpos($name, $value . "/") !== 0)
+                        return "";
+                    return $value;
+                },
+                self::$baseNamespaces));
+            if (empty($ret)) //not found
+				return;
 
 			foreach (static::$autoloadMap as $k => $v) {
 				$k = str_replace("\\", "/", $k);
@@ -77,7 +84,15 @@ class Framework {
 
 }
 
-Framework::$baseNamespace = "Targoman";
+Framework::$baseNamespaces = [
+    "Framework",
+    "Targoman"
+];
 spl_autoload_register(["Framework", "autoload"], true, false);
-Framework::$autoloadMap = require(__DIR__ . "/../app/autoload.php");
+Framework::$autoloadMap = array_replace_recursive(
+    [
+        "Framework" => __DIR__
+    ],
+    require(__DIR__ . "/../app/autoload.php")
+);
 krsort(Framework::$autoloadMap);

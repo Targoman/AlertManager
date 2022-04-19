@@ -3,7 +3,7 @@
 
 namespace Targoman\AlertManager\classes;
 
-use Targoman\AlertManager\framework\core\Application;
+use Framework\core\Application;
 
 class AppAlertManager extends Application {
 
