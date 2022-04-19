@@ -5,7 +5,7 @@ namespace Framework\core;
 
 use Framework;
 
-class Application {
+class Application extends Component {
 
     private static $config = null;
     public function config() {
@@ -19,26 +19,25 @@ class Application {
         $this->setConfig($_config);
     }
 
-    private static $db = null;
-    public function db() {
-        if (self::$db == null)
-            self::$db = Framework::instantiateClassByConfigName(self::$config, "db");
-        return self::$db;
+    private static $components = [];
+    public function __get($name) {
+        if (isset(static::$components[$name]))
+            return static::$components[$name];
+
+        if (isset($this->config()["components"][$name]["class"])) {
+            $component = Framework::instantiateClass($this->config()["components"][$name]);
+
+            if (is_null($component))
+                throw new \Exception("Could not create $name");
+
+            static::$components[$name] = $component;
+
+            return $component;
+        }
+
+        throw new \Exception("$name not configured");
     }
 
-    private static $smsgateway = null;
-    public function smsgateway() {
-        if (self::$smsgateway == null)
-            self::$smsgateway = Framework::instantiateClassByConfigName(self::$config, "smsgateway");
-        return self::$smsgateway;
-    }
+    public function run() { throw new \Exception("Application::run not implemented."); }
 
-    private static $mailer = null;
-    public function mailer() {
-        if (self::$mailer == null)
-            self::$mailer = Framework::instantiateClassByConfigName(self::$config, "mailer");
-        return self::$mailer;
-    }
-
-    public function run() {}
 }

@@ -3,9 +3,31 @@
 
 namespace Targoman\AlertManager\classes;
 
+use Framework;
 use Framework\core\Application;
 
 class AppAlertManager extends Application {
+
+    // private static $db = null;
+    // public function db() {
+    //     if (self::$db == null)
+    //         self::$db = Framework::instantiateClassByConfigName($this->config(), "db");
+    //     return self::$db;
+    // }
+
+    // private static $smsgateway = null;
+    // public function smsgateway() {
+    //     if (self::$smsgateway == null)
+    //         self::$smsgateway = Framework::instantiateClassByConfigName($this->config(), "smsgateway");
+    //     return self::$smsgateway;
+    // }
+
+    // private static $mailer = null;
+    // public function mailer() {
+    //     if (self::$mailer == null)
+    //         self::$mailer = Framework::instantiateClassByConfigName($this->config(), "mailer");
+    //     return self::$mailer;
+    // }
 
     public function run() {
         $a = shell_exec('ps -aux | grep "AlertManager.php" | grep "php "');
@@ -15,10 +37,9 @@ class AppAlertManager extends Application {
         }
 
         //-------------------------
-        $smsGateway = $this->smsgateway();
-        $mailer = $this->mailer();
-
-        $db = $this->db();
+        $smsGateway = $this->smsgateway;
+        $mailer = $this->mailer;
+        $db = $this->db;
 
         $fetchLimit = $this->config()["app"]["fetchlimit"] ?? 10;
 
@@ -102,9 +123,9 @@ SQL
 
         $altBodyTemplate = strtr($altBodyTemplate, $newReplacements);
 
-        $SendResult = $this->smsgateway()->send(null, $alrReplacedContactInfo, $altBodyTemplate);
+        $SendResult = $this->smsgateway->send(null, $alrReplacedContactInfo, $altBodyTemplate);
 
-        $rowsCount = $this->db()->execute(<<<SQL
+        $rowsCount = $this->db->execute(<<<SQL
             UPDATE tblAlerts
                SET alrLockedAt = NULL
                  , alrLastTryAt = NOW()
@@ -157,7 +178,7 @@ SQL
         $altTitleTemplate = strtr($altTitleTemplate, $newReplacements);
         $altBodyTemplate = strtr($altBodyTemplate, $newReplacements);
 
-        $SendResult = $this->mailer()
+        $SendResult = $this->mailer
             ->compose()
             ->from($this->config()["app"]["emailFrom"])
             ->to($alrReplacedContactInfo)
@@ -165,7 +186,7 @@ SQL
             ->textBody($altBodyTemplate)
             ->send();
 
-        $rowsCount = $this->db()->execute(<<<SQL
+        $rowsCount = $this->db->execute(<<<SQL
             UPDATE tblAlerts
                SET alrLockedAt = NULL
                  , alrLastTryAt = NOW()

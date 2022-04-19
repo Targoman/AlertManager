@@ -6,27 +6,29 @@ return [
         "fetchlimit" => "100",
         "emailFrom" => "",
     ],
-    "db" => [
-        "host" => "",
-        "port" => "",
-        "username" => "",
-        "password" => "",
-        "schema" => "",
-    ],
-    "smsgateway" => [
-        "username" => "",
-        "password" => "",
-        "linenumber" => "",
-    ],
-    "mailer" => [
-        "transport" => [
-            'scheme' => '',
+    "components" => [
+        "db" => [
             "host" => "",
+            "port" => "",
             "username" => "",
             "password" => "",
-            "port" => "",
-            "options" => [
-                "verify_peer" => false,
+            "schema" => "",
+        ],
+        "smsgateway" => [
+            "username" => "",
+            "password" => "",
+            "linenumber" => "",
+        ],
+        "mailer" => [
+            "transport" => [
+                'scheme' => '',
+                "host" => "",
+                "username" => "",
+                "password" => "",
+                "port" => "",
+                "options" => [
+                    "verify_peer" => false,
+                ],
             ],
         ],
     ],
