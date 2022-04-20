@@ -263,7 +263,7 @@ SQL
         // $alr_usrID              = $row['alr_usrID'];
         $alrReplacedContactInfo = trim($row['alrReplacedContactInfo']);
         // $alr_altCode            = $row['alr_altCode'];
-        $alrReplacements        = trim($row['alrReplacements']);
+        // $alrReplacements        = trim($row['alrReplacements']);
         // $alrCreateDate          = $row['alrCreateDate'];
         // $alrLockedAt            = $row['alrLockedAt'];
         // $alrSentDate            = $row['alrSentDate'];
@@ -277,6 +277,9 @@ SQL
         $altBodyTemplate         = trim($row['altBodyTemplate']);
         // $altParamsPrefix         = trim($row['altParamsPrefix']);
         // $altParamsSuffix         = trim($row['altParamsSuffix']);
+
+        if (empty($this->config()["app"]["emailFrom"]))
+            throw new \Exception("error in send email: emailFrom not set in config file");
 
         $SendResult = $this->mailer
             ->compose()

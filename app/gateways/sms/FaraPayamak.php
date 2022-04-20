@@ -9,11 +9,12 @@ use Targoman\AlertManager\classes\sms\ISmsGateway;
 // https://github.com/nosratiz/Payamak-Panel
 class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
 
-    const URL_API = "https://rest.payamak-panel.com/api/SendSMS"; ///BaseServiceNumber";
+    const URL_API = "https://rest.payamak-panel.com/api";
 
     public $username;
     public $password;
-    public $linenumber;
+    public $bodyid;
+    // public $linenumber;
 
     public function send(
         $_from, //null : use line number defined in config
@@ -24,7 +25,7 @@ class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
 
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, self::URL_API . "/SendSMS");
+        curl_setopt($ch, CURLOPT_URL, self::URL_API . "/SendSMS/BaseServiceNumber");
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "content-type: application/json; charset=utf-8",
         ]);
@@ -35,10 +36,10 @@ class FaraPayamak extends BaseSmsGateway implements ISmsGateway {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
             "username"    => $this->username,
             "password"    => $this->password,
+            "bodyId"      => $this->bodyid,
+            // "from"        => $this->linenumber ?? $_from,
             "to"          => $_to,
-            "from"        => $this->linenumber ?? $_from,
-            "text"        => $_message
-            // "bodyId"      => "$ SMSBodyID",
+            "text"        => $_message,
         ]));
 
         //
