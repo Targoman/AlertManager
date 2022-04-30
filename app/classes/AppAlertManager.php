@@ -3,8 +3,6 @@
 
 namespace Targoman\AlertManager\classes;
 
-use DateTime;
-use Framework;
 use Framework\core\Application;
 
 class AppAlertManager extends Application {
@@ -28,6 +26,7 @@ class AppAlertManager extends Application {
               FROM tblAlerts
         INNER JOIN tblAlertTemplates
                 ON tblAlertTemplates.altCode = tblAlerts.alr_altCode
+               AND tblAlertTemplates.altLanguage = tblAlerts.alrLanguage
              WHERE alrReplacedContactInfo != '__UNKNOWN__'
                AND alrLockedAt IS NULL
                AND (alrStatus = 'N'
@@ -230,7 +229,7 @@ SQL
         // $alrType                = $row['alrType'];
         // $alr_usrID              = $row['alr_usrID'];
         $alrReplacedContactInfo = trim($row['alrReplacedContactInfo']);
-        // $alr_altCode            = $row['alr_altCode'];
+        $alr_altCode            = $row['alr_altCode'];
         // $alrReplacements        = trim($row['alrReplacements']);
         // $alrCreateDate          = $row['alrCreateDate'];
         // $alrLockedAt            = $row['alrLockedAt'];
@@ -245,8 +244,15 @@ SQL
         $altBodyTemplate         = trim($row['altBodyTemplate']);
         // $altParamsPrefix         = trim($row['altParamsPrefix']);
         // $altParamsSuffix         = trim($row['altParamsSuffix']);
+        $altLanguage             = $row["altLanguage"];
 
-        $SendResult = $this->smsgateway->send(null, $alrReplacedContactInfo, $altBodyTemplate);
+        $SendResult = $this->smsgateway->send(
+            null,
+            $alrReplacedContactInfo,
+            $altBodyTemplate,
+            $alr_altCode,
+            $altLanguage
+        );
 
         if ($SendResult["OK"] ?? false)
             return $SendResult["refID"];

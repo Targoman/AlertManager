@@ -17,8 +17,17 @@ return [
         "smsgateway" => [
             "username" => "",
             "password" => "",
-            "bodyid" => "",
             // "linenumber" => "",
+            "bodyid" => [
+                "service1" => [
+                    "en" => "",
+                    "fa" => "",
+                ],
+                "service2" => [
+                    "en" => "",
+                    "fa" => "",
+                ],
+            ],
         ],
         "mailer" => [
             "transport" => [
