@@ -28,10 +28,13 @@ class AppAlertManager extends Application {
                 ON tblAlertTemplates.altCode = tblAlerts.alr_altCode
                AND tblAlertTemplates.altLanguage = tblAlerts.alrLanguage
              WHERE alrReplacedContactInfo != '__UNKNOWN__'
-               AND alrLockedAt IS NULL
+               AND (
+                   alrLockedAt IS NULL
+                OR alrLockedAt < DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                   )
                AND (alrStatus = 'N'
                 OR (alrStatus = 'E'
-               AND alrLastTryAt < DATE_SUB(NOW(), INTERVAL 10 Minute)
+               AND alrLastTryAt < DATE_SUB(NOW(), INTERVAL 10 MINUTE)
                    )
                    )
           ORDER BY alrCreateDate ASC
