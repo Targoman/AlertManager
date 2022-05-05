@@ -4,7 +4,11 @@
 defined('FW_DEBUG') or define('FW_DEBUG', true);
 defined('FW_ENV_DEV') or define('FW_ENV_DEV', true);
 
-include_once(__DIR__ . "/../framework/Framework.php");
+$projectNamespaces = [
+    "Targoman"
+];
+
+include_once(__DIR__ . "/../vendor/kambizzandi/php-framework/src/Framework.php");
 
 $config = require(__DIR__ . "/config/Alerting.conf.php");
 
