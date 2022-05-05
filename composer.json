@@ -9,6 +9,8 @@
         }
     ],
     "require": {
+        "kambizzandi/php-framework" : "*",
         "symfony/mailer": "^5.4"
-    }
+    },
+    "minimum-stability" : "dev"
 }

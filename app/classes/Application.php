@@ -3,9 +3,9 @@
 
 namespace Targoman\AlertManager\classes;
 
-use Framework\core\Application;
+use Framework\core\Application as BaseApplication;
 
-class AppAlertManager extends Application {
+class Application extends BaseApplication {
 
     public function run() {
         $a = shell_exec('ps -aux | grep "AlertManager.php" | grep "php "');

@@ -4,24 +4,18 @@
 defined('FW_DEBUG') or define('FW_DEBUG', true);
 defined('FW_ENV_DEV') or define('FW_ENV_DEV', true);
 
-$projectNamespaces = [
-    "Targoman"
-];
+require(__DIR__ . "/../vendor/kambizzandi/php-framework/src/Framework.php");
 
-include_once(__DIR__ . "/../vendor/kambizzandi/php-framework/src/Framework.php");
-
-$config = require(__DIR__ . "/config/Alerting.conf.php");
+$config = array_replace_recursive(
+    require(__DIR__ . "/config/AlertManager.conf.php"),
+    require(__DIR__ . "/config/params.php")
+);
 
 if (FW_ENV_DEV) {
     $config = array_replace_recursive(
         $config,
         require(__DIR__ . "/config/params-local.php")
     );
-} else {
-    $config = array_replace_recursive(
-        $config,
-        require(__DIR__ . "/config/params.php")
-    );
 }
 
-exit((new \Targoman\AlertManager\classes\AppAlertManager($config))->run());
+exit((new \Targoman\AlertManager\classes\Application($config))->run());
