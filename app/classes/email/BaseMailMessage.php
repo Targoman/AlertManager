@@ -1,5 +1,7 @@
 <?php
-// @author: Kambiz Zandi <kambizzandi@gmail.com>
+/**
+ * @author: Kambiz Zandi <kambizzandi@gmail.com>
+ */
 
 namespace Targoman\AlertManager\classes\email;
 

@@ -1,13 +1,17 @@
 <?php
-// @author: Kambiz Zandi <kambizzandi@gmail.com>
+/**
+ * @author: Kambiz Zandi <kambizzandi@gmail.com>
+ */
 
 namespace Targoman\AlertManager\classes;
 
-use Framework\core\Application;
+use Framework\core\Application as BaseApplication;
 
-class AppAlertManager extends Application {
+class Application extends BaseApplication {
 
     public function run() {
+        echo "Starting Alert Manager\n";
+
         $a = shell_exec('ps -aux | grep "AlertManager.php" | grep "php "');
         if (substr_count($a, "\n") > 2) {
             echo "AlertManager is running\n";
@@ -28,10 +32,12 @@ class AppAlertManager extends Application {
                 ON tblAlertTemplates.altCode = tblAlerts.alr_altCode
                AND tblAlertTemplates.altLanguage = tblAlerts.alrLanguage
              WHERE alrReplacedContactInfo != '__UNKNOWN__'
-               AND alrLockedAt IS NULL
+               AND (alrLockedAt IS NULL
+                OR alrLockedAt < DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                   )
                AND (alrStatus = 'N'
                 OR (alrStatus = 'E'
-               AND alrLastTryAt < DATE_SUB(NOW(), INTERVAL 10 Minute)
+               AND alrLastTryAt < DATE_SUB(NOW(), INTERVAL 10 MINUTE)
                    )
                    )
           ORDER BY alrCreateDate ASC
@@ -48,8 +54,8 @@ SQL
 
         // print_r($ids);
 
-        if (empty($data))
-            throw new \Exception("Error in gathering alerts ids");
+        if (empty($ids))
+            throw new \Exception("Error in gathering ids");
 
         //lock items
         $rowsCount = $db->execute(strtr(<<<SQL
