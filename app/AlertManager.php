@@ -1,5 +1,7 @@
 <?php
-// @author: Kambiz Zandi <kambizzandi@gmail.com>
+/**
+ * @author: Kambiz Zandi <kambizzandi@gmail.com>
+ */
 
 defined('FW_DEBUG') or define('FW_DEBUG', true);
 defined('FW_ENV_DEV') or define('FW_ENV_DEV', true);
@@ -15,7 +17,7 @@ $config = array_replace_recursive(
 if (FW_ENV_DEV) {
     $config = array_replace_recursive(
         $config,
-        require(__DIR__ . "/config/params-local.php")
+        @require(__DIR__ . "/config/params-local.php")
     );
 }
 
