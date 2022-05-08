@@ -5,9 +5,13 @@
 
 namespace Targoman\AlertManager\classes;
 
+use \Exception;
 use Targoman\Framework\core\Application as BaseApplication;
 
 class Application extends BaseApplication {
+    public $instanceId;
+    public $fetchlimit = 1;
+    public $emailFrom;
 
     public function run() {
         echo "Starting Alert Manager\n";
@@ -19,13 +23,22 @@ class Application extends BaseApplication {
         }
 
         //-------------------------
+        if (empty($this->instanceId)) {
+            $this->instanceId = "ALM-" . uniqid(true);
+
+            $fileName = __DIR__ . '/../config/params-local.php';
+            $localParams = require($fileName);
+            $localParams["app"]["instanceId"] = $this->instanceId;
+
+            ///@TODO: save instanceId to config file
+        }
+
+        //-------------------------
         $smsGateway = $this->smsgateway;
         $mailer = $this->mailer;
         $db = $this->db;
 
-        $fetchLimit = $this->config()["app"]["fetchlimit"] ?? 10;
-
-        $data = $db->selectAll(<<<SQL
+        $qry = <<<SQL
             SELECT *
               FROM tblAlerts
         INNER JOIN tblAlertTemplates
@@ -34,6 +47,7 @@ class Application extends BaseApplication {
              WHERE alrReplacedContactInfo != '__UNKNOWN__'
                AND (alrLockedAt IS NULL
                 OR alrLockedAt < DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                OR alrLockedBy = ?
                    )
                AND (alrStatus = 'N'
                 OR (alrStatus = 'E'
@@ -41,9 +55,11 @@ class Application extends BaseApplication {
                    )
                    )
           ORDER BY alrCreateDate ASC
-             LIMIT {$fetchLimit}
-SQL
-        );
+             LIMIT {$this->fetchlimit}
+SQL;
+        $data = $db->selectAll($qry, [
+            1 => $this->instanceId,
+        ]);
 
         // print_r($data);
 
@@ -55,17 +71,21 @@ SQL
         // print_r($ids);
 
         if (empty($ids))
-            throw new \Exception("Error in gathering ids");
+            throw new Exception("Error in gathering ids");
 
         //lock items
-        $rowsCount = $db->execute(strtr(<<<SQL
+        $qry = strtr(<<<SQL
             UPDATE tblAlerts
                SET alrLockedAt = NOW()
+                 , alrLockedBy = ?
              WHERE alrID IN (:ids)
 SQL
         , [
             ':ids' => implode(',', $ids),
-        ]));
+        ]);
+        $rowsCount = $db->execute($qry, [
+            1 => $this->instanceId,
+        ]);
 
         // print_r([implode(',', $ids), $rowsCount]);
 
@@ -138,7 +158,7 @@ SQL
                         ],
                     ]);
                 }
-            } catch(\Exception $_exp) {
+            } catch(Exception $_exp) {
                 echo "[Error]: (id: {$alrID}) " . $_exp->getMessage() . "\n";
 
                 ++$errorCount;
@@ -168,7 +188,7 @@ SQL
                         ],
                     ]);
                 }
-            } catch(\Exception $_exp) {
+            } catch(Exception $_exp) {
                 echo "[SendSms: Error]: (id: {$alrID}) " . $_exp->getMessage() . "\n";
 
                 ++$errorCount;
@@ -198,7 +218,7 @@ SQL
             //             ],
             //         ]);
             //     }
-            // } catch(\Exception $_exp) {
+            // } catch(Exception $_exp) {
                 // echo "[Error]: (id: {$alrID}) " . $_exp->getMessage() . "\n";
 
             //     ++$errorCount;
@@ -210,21 +230,23 @@ SQL
             //     ]);
             // }
 
-            $rowsCount = $this->db->execute(<<<SQL
-                UPDATE tblAlerts
-                   SET alrLockedAt = NULL
-                     , alrLastTryAt = NOW()
-                     , alrStatus = ?
-                     , alrResult = ?
-                 WHERE alrID = ?
-SQL
-            , [
-                1 => ($errorCount == 0) ? 'S' : 'E',
-                2 => empty($alrResult) ? null : json_encode($alrResult),
+            $_alrSentDate = ($errorCount == 0 ? 'NOW()' : 'NULL');
+            $qry = <<<SQL
+            UPDATE tblAlerts
+               SET alrLockedAt = NULL
+                 , alrLockedBy = NULL
+                 , alrLastTryAt = NOW()
+                 , alrSentDate = {$_alrSentDate}
+                 , alrResult = ?
+                 , alrStatus = ?
+             WHERE alrID = ?
+SQL;
+            $rowsCount = $db->execute($qry, [
+                1 => empty($alrResult) ? null : json_encode($alrResult),
+                2 => ($errorCount == 0 ? 'S' : 'E'),
                 3 => $alrID,
             ]);
         }
-
     }
 
     /**
@@ -263,7 +285,7 @@ SQL
         if ($SendResult["OK"] ?? false)
             return $SendResult["refID"];
 
-        throw new \Exception("error in send sms: " . ($SendResult["message"]));
+        throw new Exception("error in send sms: " . ($SendResult["message"]));
     }
 
     /**
@@ -290,12 +312,12 @@ SQL
         // $altParamsPrefix         = trim($row['altParamsPrefix']);
         // $altParamsSuffix         = trim($row['altParamsSuffix']);
 
-        if (empty($this->config()["app"]["emailFrom"]))
-            throw new \Exception("error in send email: emailFrom not set in config file");
+        if (empty($this->emailFrom))
+            throw new Exception("error in send email: emailFrom not set in config file");
 
         $SendResult = $this->mailer
             ->compose()
-            ->from($this->config()["app"]["emailFrom"])
+            ->from($this->emailFrom)
             ->to($alrReplacedContactInfo)
             ->subject($altTitleTemplate)
             ->textBody($altBodyTemplate)
@@ -304,14 +326,14 @@ SQL
         if ($SendResult)
             return 'ok';
 
-        throw new \Exception("error in send email");
+        throw new Exception("error in send email");
     }
 
     /**
      * return: refID : string
      */
     private function SendPushForItem($row) {
-        throw new \Exception("error in send push notification: not implemented yet");
+        throw new Exception("error in send push notification: not implemented yet");
     }
 
 };

@@ -12,6 +12,8 @@ interface IBaseMailer {
 }
 
 class BaseMailer {
+    use \Targoman\Framework\core\ComponentTrait;
+
     public $messageClassName = BaseMailMessage::class;
 
     public function createMessageClass() {
