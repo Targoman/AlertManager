@@ -18,4 +18,5 @@ interface ISmsGateway {
 }
 
 class BaseSmsGateway {
+    use \Targoman\Framework\core\ComponentTrait;
 }
