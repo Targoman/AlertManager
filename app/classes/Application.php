@@ -5,7 +5,7 @@
 
 namespace Targoman\AlertManager\classes;
 
-use Framework\core\Application as BaseApplication;
+use Targoman\Framework\core\Application as BaseApplication;
 
 class Application extends BaseApplication {
 
