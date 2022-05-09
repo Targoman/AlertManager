@@ -1,0 +1,15 @@
+{
+    "name": "targoman/alert-manager",
+    "description": "Alert manager for TAPI",
+    "type": "project",
+    "authors": [
+        {
+            "name": "kambizzandi",
+            "email": "kambizzandi@gmail.com"
+        }
+    ],
+    "require": {
+        "targoman/php-micro-framework" : "dev-predev"
+    },
+    "minimum-stability" : "dev"
+}
