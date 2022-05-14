@@ -7,6 +7,7 @@ namespace Targoman\AlertManager\classes;
 
 use \Exception;
 use Targoman\Framework\core\Application as BaseApplication;
+use Targoman\Framework\helpers\ArrayHelper;
 
 class Application extends BaseApplication {
     public $instanceId;
@@ -14,24 +15,38 @@ class Application extends BaseApplication {
     public $emailFrom;
 
     public function run() {
-        echo "Starting Alert Manager\n";
-
-        $a = shell_exec('ps -aux | grep "AlertManager.php" | grep "php "');
-        if (substr_count($a, "\n") > 2) {
-            echo "AlertManager is running\n";
-            return;
-        }
-
-        //-------------------------
         if (empty($this->instanceId)) {
             $this->instanceId = "ALM-" . uniqid(true);
 
+            $localParams = [];
             $fileName = __DIR__ . '/../config/params-local.php';
-            $localParams = require($fileName);
+            if (file_exists($fileName)) {
+                $localParams = require($fileName);
+            }
+
             $localParams["app"]["instanceId"] = $this->instanceId;
 
-            ///@TODO: save instanceId to config file
+            $conf = ArrayHelper::dump($localParams);
+            $conf = "<?php\n" . "return " . $conf . ";\n";
+            file_put_contents($fileName, $conf);
         }
+
+        //-------------------------
+        $this->logger->setActor($this->instanceId);
+
+        $this->logger->log("---------- Starting Alert Manager ----------");
+
+        //-------------------------
+        $command = 'ps aux | grep "AlertManager.php" | grep "php "';
+        exec($command, $output, $return_var);
+        // var_dump($output);
+        // var_dump($return_var);
+        if ($return_var != 0)
+            throw new Exception("Error in `ps`");
+        // $output = shell_exec('ps aux | grep "AlertManager.php" | grep "php "');
+        // if (substr_count($output, "\n") > 2)
+        if (count($output) > 2)
+            throw new Exception("AlertManager is running");
 
         //-------------------------
         $smsGateway = $this->smsgateway;
@@ -61,17 +76,18 @@ SQL;
             1 => $this->instanceId,
         ]);
 
-        // print_r($data);
-
-        if (empty($data))
+        if (empty($data)) {
+            $this->logger->log("Nothing to do");
             return;
+        }
+
+        $this->logger->log("Count of items: " . count($data));
 
         $ids = array_map(function ($ar) { return $ar["alrID"]; }, $data);
-
-        // print_r($ids);
-
         if (empty($ids))
             throw new Exception("Error in gathering ids");
+
+        $this->logger->log("Items ID: " . implode(',', $ids));
 
         //lock items
         $qry = strtr(<<<SQL
@@ -148,7 +164,7 @@ SQL
                     && (($alrResult[$key]['status'] ?? 'N') != 'S')
                 ) {
                     $refID = $this->SendEmailForItem($row);
-                    echo "[SendEmail: OK]: (id: {$alrID}) " . $refID . "\n";
+                    $this->logger->log("[SendEmail: OK]: (id: {$alrID}) " . $refID);
 
                     $alrResult = array_replace_recursive($alrResult, [
                         $key => [
@@ -159,7 +175,7 @@ SQL
                     ]);
                 }
             } catch(Exception $_exp) {
-                echo "[Error]: (id: {$alrID}) " . $_exp->getMessage() . "\n";
+                $this->logger->log("[Error]: (id: {$alrID}) " . $_exp->getMessage());
 
                 ++$errorCount;
 
@@ -178,7 +194,7 @@ SQL
                     && (($alrResult[$key]['status'] ?? 'N') != 'S')
                 ) {
                     $refID = $this->SendSmsForItem($row);
-                    echo "[SendSms: OK]: (id: {$alrID}) " . $refID . "\n";
+                    $this->logger->log("[SendSms: OK]: (id: {$alrID}) " . $refID);
 
                     $alrResult = array_replace_recursive($alrResult, [
                         $key => [
@@ -189,7 +205,7 @@ SQL
                     ]);
                 }
             } catch(Exception $_exp) {
-                echo "[SendSms: Error]: (id: {$alrID}) " . $_exp->getMessage() . "\n";
+                $this->logger->log("[SendSms: Error]: (id: {$alrID}) " . $_exp->getMessage());
 
                 ++$errorCount;
 
@@ -208,7 +224,7 @@ SQL
             //         && (($alrResult[$key]['status'] ?? 'N') != 'S')
             //     ) {
             //         $refID = $this->SendPushForItem($row);
-            // echo "[SendPush: OK]: (id: {$alrID}) " . $refID . "\n";
+            // $this->logger->log("[SendPush: OK]: (id: {$alrID}) " . $refID);
 
             //         $alrResult = array_replace_recursive($alrResult, [
             //             $key => [
@@ -219,7 +235,7 @@ SQL
             //         ]);
             //     }
             // } catch(Exception $_exp) {
-                // echo "[Error]: (id: {$alrID}) " . $_exp->getMessage() . "\n";
+                // $this->logger->log("[Error]: (id: {$alrID}) " . $_exp->getMessage());
 
             //     ++$errorCount;
 
