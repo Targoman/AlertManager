@@ -60,7 +60,11 @@ class Application extends BaseApplication {
         //-------------------------
         $counter = 0;
         while (true) {
-            $this->runOnce();
+            try {
+                $this->runOnce();
+            } catch (\Throwable $th) {
+                $this->logger->logException($th);
+            }
 
             if (!empty($this->runner["maxLoopCount"]) && (++$counter >= $this->runner["maxLoopCount"]))
                 break;
