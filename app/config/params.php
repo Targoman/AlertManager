@@ -5,6 +5,10 @@
 
 return [
     "app" => [
+        "runner" => [
+            "sleep" => 60,
+            "maxLoopCount" => null,
+        ],
         "fetchlimit" => "100",
         "emailFrom" => "",
     ],

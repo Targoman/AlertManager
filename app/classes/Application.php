@@ -10,6 +10,10 @@ use Targoman\Framework\core\Application as BaseApplication;
 use Targoman\Framework\helpers\ArrayHelper;
 
 class Application extends BaseApplication {
+    public $runner = [
+        "sleep" => 60,
+        "maxLoopCount" => null,
+    ];
     public $instanceId;
     public $fetchlimit = 1;
     public $emailFrom;
@@ -53,6 +57,21 @@ class Application extends BaseApplication {
         $mailer = $this->mailer;
         $db = $this->db;
 
+        //-------------------------
+        $counter = 0;
+        while (true) {
+            $this->runOnce();
+
+            if (!empty($this->runner["maxLoopCount"]) && (++$counter >= $this->runner["maxLoopCount"]))
+                break;
+
+            sleep($this->runner["sleep"]);
+        };
+
+        return 0;
+    }
+
+    public function runOnce() {
         $qry = <<<SQL
             SELECT *
               FROM tblAlerts
@@ -72,7 +91,7 @@ class Application extends BaseApplication {
           ORDER BY alrCreateDate ASC
              LIMIT {$this->fetchlimit}
 SQL;
-        $data = $db->selectAll($qry, [
+        $data = $this->db->selectAll($qry, [
             1 => $this->instanceId,
         ]);
 
@@ -99,7 +118,7 @@ SQL
         , [
             ':ids' => implode(',', $ids),
         ]);
-        $rowsCount = $db->execute($qry, [
+        $rowsCount = $this->db->execute($qry, [
             1 => $this->instanceId,
         ]);
 
@@ -257,7 +276,7 @@ SQL
                  , alrStatus = ?
              WHERE alrID = ?
 SQL;
-            $rowsCount = $db->execute($qry, [
+            $rowsCount = $this->db->execute($qry, [
                 1 => empty($alrResult) ? null : json_encode($alrResult),
                 2 => ($errorCount == 0 ? 'S' : 'E'),
                 3 => $alrID,
