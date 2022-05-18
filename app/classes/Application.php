@@ -18,44 +18,77 @@ class Application extends BaseApplication {
     public $fetchlimit = 1;
     public $emailFrom;
 
+    public $cmdlineOptions = [];
+    public $opt_help = false;
+    public $opt_self_check = false;
+    public function parseCommandLineArguments() {
+        $this->cmdlineOptions = getopt('hs', ['self-check', 'help']);
+        // var_dump($this->cmdlineOptions);
+
+        $this->opt_help = (isset($this->cmdlineOptions['h']) || isset($this->cmdlineOptions['help']));
+        $this->opt_self_check = (isset($this->cmdlineOptions['s']) || isset($this->cmdlineOptions['self-check']));
+    }
+
     public function run() {
-        if (empty($this->instanceId)) {
-            $this->instanceId = "ALM-" . uniqid(true);
+        $this->parseCommandLineArguments();
 
-            $localParams = [];
-            $fileName = __DIR__ . '/../config/params-local.php';
-            if (file_exists($fileName)) {
-                $localParams = require($fileName);
-            }
+        if ($this->opt_help) {
+            echo <<<TEXT
+php app/AlertManager.php:
+    -h | --help : prints this help
+    -s | self-check: check app and exit
 
-            $localParams["app"]["instanceId"] = $this->instanceId;
-
-            $conf = ArrayHelper::dump($localParams);
-            $conf = "<?php\n" . "return " . $conf . ";\n";
-            file_put_contents($fileName, $conf);
+TEXT;
+            return;
         }
 
-        //-------------------------
-        $this->logger->setActor($this->instanceId);
+        if ($this->opt_self_check == false) {
+            if (empty($this->instanceId)) {
+                $this->instanceId = "ALM-" . uniqid(true);
+
+                $localParams = [];
+                $fileName = __DIR__ . '/../config/params-local.php';
+                if (file_exists($fileName)) {
+                    $localParams = require($fileName);
+                }
+
+                $localParams["app"]["instanceId"] = $this->instanceId;
+
+                $conf = ArrayHelper::dump($localParams);
+                $conf = "<?php\n" . "return " . $conf . ";\n";
+                file_put_contents($fileName, $conf);
+            }
+
+            //-------------------------
+            $this->logger->setActor($this->instanceId);
+
+        }
 
         $this->logger->log("---------- Starting Alert Manager ----------");
 
-        //-------------------------
-        $command = 'ps aux | grep "AlertManager.php" | grep "php "';
-        exec($command, $output, $return_var);
-        // var_dump($output);
-        // var_dump($return_var);
-        if ($return_var != 0)
-            throw new Exception("Error in `ps`");
-        // $output = shell_exec('ps aux | grep "AlertManager.php" | grep "php "');
-        // if (substr_count($output, "\n") > 2)
-        if (count($output) > 2)
-            throw new Exception("AlertManager is running");
+        if ($this->opt_self_check == false) {
+            //-------------------------
+            $command = 'ps aux | grep "AlertManager.php" | grep "php "';
+            exec($command, $output, $return_var);
+            // var_dump($output);
+            // var_dump($return_var);
+            if ($return_var != 0)
+                throw new Exception("Error in `ps`");
+            // $output = shell_exec('ps aux | grep "AlertManager.php" | grep "php "');
+            // if (substr_count($output, "\n") > 2)
+            if (count($output) > 2)
+                throw new Exception("AlertManager is running");
+        }
 
         //-------------------------
         $smsGateway = $this->smsgateway;
         $mailer = $this->mailer;
         $db = $this->db;
+
+        if ($this->opt_self_check) {
+            $this->logger->log("Self check");
+            return;
+        }
 
         //-------------------------
         $counter = 0;
