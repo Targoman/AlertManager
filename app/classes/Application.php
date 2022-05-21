@@ -42,27 +42,29 @@ TEXT;
             return;
         }
 
-        if ($this->opt_self_check == false) {
-            if (empty($this->instanceId)) {
-                $this->instanceId = "ALM-" . uniqid(true);
+        $this->instanceId = "ALM-" . gethostname();
 
-                $localParams = [];
-                $fileName = __DIR__ . '/../config/params-local.php';
-                if (file_exists($fileName)) {
-                    $localParams = require($fileName);
-                }
+        // if ($this->opt_self_check == false) {
+            // if (empty($this->instanceId)) {
+                // $this->instanceId = "ALM-" . uniqid(true);
 
-                $localParams["app"]["instanceId"] = $this->instanceId;
+                // $localParams = [];
+                // $fileName = __DIR__ . '/../config/params-local.php';
+                // if (file_exists($fileName)) {
+                //     $localParams = require($fileName);
+                // }
 
-                $conf = ArrayHelper::dump($localParams);
-                $conf = "<?php\n" . "return " . $conf . ";\n";
-                file_put_contents($fileName, $conf);
-            }
+                // $localParams["app"]["instanceId"] = $this->instanceId;
+
+                // $conf = ArrayHelper::dump($localParams);
+                // $conf = "<?php\n" . "return " . $conf . ";\n";
+                // file_put_contents($fileName, $conf);
+            // }
 
             //-------------------------
-            $this->logger->setActor($this->instanceId);
+        // }
 
-        }
+        $this->logger->setActor($this->instanceId);
 
         $this->logger->log("---------- Starting Alert Manager ----------");
 
