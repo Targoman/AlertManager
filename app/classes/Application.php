@@ -67,8 +67,7 @@ TEXT;
         $this->logger->log("---------- Starting Alert Manager ----------");
 
         if ($this->opt_self_check == false) {
-            //-------------------------
-            $command = 'ps aux | grep "AlertManager.php" | grep "php "';
+            $command = 'ps aux | grep "AlertManager.php" | grep "php " | grep --invert-match "ps aux"';
             exec($command, $output, $return_var);
 
             if ($return_var != 0) {
@@ -76,7 +75,7 @@ TEXT;
                 throw new Exception("Error in `ps`");
             }
 
-            if (count($output) > 2) {
+            if (count($output) > 1) {
                 var_dump($output);
                 throw new Exception("AlertManager is running");
             }
