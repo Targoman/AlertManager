@@ -70,14 +70,16 @@ TEXT;
             //-------------------------
             $command = 'ps aux | grep "AlertManager.php" | grep "php "';
             exec($command, $output, $return_var);
-            // var_dump($output);
-            // var_dump($return_var);
-            if ($return_var != 0)
+
+            if ($return_var != 0) {
+                var_dump($return_var);
                 throw new Exception("Error in `ps`");
-            // $output = shell_exec('ps aux | grep "AlertManager.php" | grep "php "');
-            // if (substr_count($output, "\n") > 2)
-            if (count($output) > 2)
+            }
+
+            if (count($output) > 2) {
+                var_dump($output);
                 throw new Exception("AlertManager is running");
+            }
         }
 
         //-------------------------
